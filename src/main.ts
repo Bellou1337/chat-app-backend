@@ -16,6 +16,16 @@ async function bootstrap() {
     .setDescription('The Chat API description')
     .setVersion('1.0')
     .addTag('chat')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
 
   const swaggerPath = configService.get<string>('SWAGGER_PATH')!;

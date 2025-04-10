@@ -1,17 +1,28 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
-import { CreateUserDTO } from 'src/users/dto/create-user.dto';
+import { Controller, Post, Body, HttpCode, UseGuards, Request } from '@nestjs/common';
+import { ApiBody, ApiOperation, ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { CreateUserDTO, LoginUserDTO } from 'src/users/dto';
 import { UsersService } from 'src/users/users.service';
 import { API_RESPONSES } from 'src/shared/swagger/api-responses';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './auth.guard';
+import { RefreshTokenDTO } from './dto';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('/login')
-  async authorization(): Promise<string> {
-    return 'authorization';
+  @ApiOperation({ summary: 'User login' })
+  @ApiBody({ type: LoginUserDTO })
+  @HttpCode(200)
+  @ApiResponse(API_RESPONSES.USERS_TOKEN)
+  @ApiResponse(API_RESPONSES.INVALID_CREDENTIALS)
+  async authorization(@Body() loginUserDTO: LoginUserDTO): Promise<Record<string, any>> {
+    return await this.authService.signIn(loginUserDTO);
   }
 
   @Post('/register')
@@ -24,8 +35,21 @@ export class AuthController {
     return await this.usersService.createUser(createUserDTO);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('/logout')
-  async logout(): Promise<string> {
+  @ApiBearerAuth('access-token')
+  async logout(@Request() req): Promise<string> {
+    console.log(req);
     return 'logout';
+  }
+
+  @Post('/refresh')
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiBody({ type: RefreshTokenDTO })
+  @HttpCode(200)
+  @ApiResponse(API_RESPONSES.TOKEN_REFRESHED)
+  @ApiResponse(API_RESPONSES.INVALID_REFRESH_TOKEN)
+  async refresh(@Body() body: { refresh_token: string }): Promise<Record<string, string>> {
+    return await this.authService.refreshAccessToken(body.refresh_token);
   }
 }

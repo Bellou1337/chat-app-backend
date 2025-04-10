@@ -4,6 +4,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRole } from 'src/shared/enums';
 import { UserStatus } from 'src/shared/enums';
 import { hashPassword } from 'src/shared/utils/password.utils';
+import { UserDTO } from './dto';
 
 @Injectable()
 export class UsersService {
@@ -33,5 +34,14 @@ export class UsersService {
     });
 
     return { message: 'User created' };
+  }
+
+  async findOne(username: string): Promise<UserDTO | undefined> {
+    const user = (await this.prismaService.users.findUnique({
+      where: {
+        username: username,
+      },
+    })) as UserDTO;
+    return user;
   }
 }
