@@ -3,4 +3,5 @@ export class UserDTO {
   readonly password: string;
   readonly role: string;
   readonly status: string;
+  readonly refreshToken?: string;
 }

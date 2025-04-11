@@ -105,4 +105,38 @@ export const API_RESPONSES = {
       },
     },
   },
+  LOGOUT_SUCCESS: {
+    status: 200,
+    description: 'Logout success',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Logout success',
+        },
+      },
+    },
+  },
+  TOKEN_BLACKLISTED: {
+    status: 401,
+    description: 'Token is blacklisted',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Token is blacklisteds',
+        },
+        error: {
+          type: 'string',
+          example: 'Unauthorized',
+        },
+        statusCode: {
+          type: 'number',
+          example: 401,
+        },
+      },
+    },
+  },
 };

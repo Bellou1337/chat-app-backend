@@ -37,10 +37,13 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/logout')
+  @ApiOperation({ summary: 'User logout' })
+  @HttpCode(200)
+  @ApiResponse(API_RESPONSES.LOGOUT_SUCCESS)
+  @ApiResponse(API_RESPONSES.TOKEN_BLACKLISTED)
   @ApiBearerAuth('access-token')
-  async logout(@Request() req): Promise<string> {
-    console.log(req);
-    return 'logout';
+  async logout(@Request() req): Promise<Record<string, string>> {
+    return await this.authService.logout(req);
   }
 
   @Post('/refresh')

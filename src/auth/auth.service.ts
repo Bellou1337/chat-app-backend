@@ -4,6 +4,9 @@ import { LoginUserDTO } from 'src/users/dto';
 import { comparePasswords } from 'src/shared/utils/password.utils';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { extractTokenFromHeader } from 'src/shared/utils/token.utils';
+import { TokenService } from './token/token.service';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -11,6 +14,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prismaService: PrismaService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async signIn(userData: LoginUserDTO): Promise<Record<string, any>> {
@@ -48,7 +52,7 @@ export class AuthService {
       refreshToken: refreshToken,
     };
   }
-  
+
   async refreshAccessToken(refreshToken: string): Promise<Record<string, string>> {
     const user = await this.prismaService.users.findUnique({
       where: {
@@ -61,5 +65,32 @@ export class AuthService {
     const payload = { sub: user.role, username: user.username };
     const accessToken = await this.jwtService.sign(payload);
     return { accessToken: accessToken };
+  }
+
+  async logout(req: Request): Promise<Record<string, string>> {
+    const token = extractTokenFromHeader(req);
+    if (!token) {
+      throw new UnauthorizedException('Token not found');
+    }
+    try {
+      await this.tokenService.invalidateToken(token);
+
+      const payload = await this.jwtService.verifyAsync(token);
+      const username = payload.username;
+
+      await this.prismaService.users.updateMany({
+        where: {
+          username: username,
+        },
+        data: {
+          status: 'OFFLINE',
+          refreshToken: null,
+        },
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    return { message: 'Logout successful' };
   }
 }

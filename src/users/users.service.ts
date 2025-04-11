@@ -5,10 +5,16 @@ import { UserRole } from 'src/shared/enums';
 import { UserStatus } from 'src/shared/enums';
 import { hashPassword } from 'src/shared/utils/password.utils';
 import { UserDTO } from './dto';
+import { JwtService } from '@nestjs/jwt';
+import { extractTokenFromHeader } from 'src/shared/utils/token.utils';
+import { Request } from 'express';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async createUser(createUserDTO: CreateUserDTO): Promise<Record<string, string>> {
     const { username, password } = createUserDTO;
@@ -43,5 +49,26 @@ export class UsersService {
       },
     })) as UserDTO;
     return user;
+  }
+
+  async findCurrentUser(req: Request): Promise<UserDTO> {
+    const token = extractTokenFromHeader(req);
+    const payload = await this.jwtService.verifyAsync(token!);
+    const user = (await this.prismaService.users.findUnique({
+      where: {
+        username: payload.username,
+      },
+      select: {
+        username: true,
+        role: true,
+        status: true,
+        refreshToken: true,
+      },
+    })) as UserDTO;
+    if (!user) {
+      throw new ConflictException('User not found');
+    }
+
+    return user as UserDTO;
   }
 }
