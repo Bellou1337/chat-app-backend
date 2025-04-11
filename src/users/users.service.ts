@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDTO } from 'src/users/dto/create-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRole } from 'src/shared/enums';
@@ -70,5 +70,23 @@ export class UsersService {
     }
 
     return user as UserDTO;
+  }
+
+  async findUserByUsername(username: string): Promise<UserDTO> {
+    const user = (await this.prismaService.users.findUnique({
+      where: {
+        username: username,
+      },
+      select: {
+        username: true,
+        role: true,
+        status: true,
+        refreshToken: true,
+      },
+    })) as UserDTO;
+    if (!user) {
+      throw new ConflictException('User not found');
+    }
+    return user;
   }
 }

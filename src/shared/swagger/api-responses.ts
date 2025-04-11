@@ -1,3 +1,5 @@
+import { UserDTO } from 'src/users/dto';
+
 export const API_RESPONSES = {
   USER_CREATED: {
     status: 200,
@@ -138,5 +140,36 @@ export const API_RESPONSES = {
         },
       },
     },
+  },
+  CURRENT_USER: {
+    status: 200,
+    description: 'Get information about the current user',
+    type: UserDTO,
+  },
+  USER_NOT_FOUND: {
+    status: 409,
+    description: 'User not found',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'User not found',
+        },
+        error: {
+          type: 'string',
+          example: 'Conflict',
+        },
+        statusCode: {
+          type: 'number',
+          example: 409,
+        },
+      },
+    },
+  },
+  USER_FOUND: {
+    status: 200,
+    description: 'User found',
+    type: UserDTO,
   },
 };
