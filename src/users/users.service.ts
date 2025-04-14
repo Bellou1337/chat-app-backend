@@ -3,17 +3,20 @@ import { CreateUserDTO } from 'src/users/dto/create-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRole } from 'src/shared/enums';
 import { UserStatus } from 'src/shared/enums';
-import { hashPassword } from 'src/shared/utils/password.utils';
+import { hashPassword, comparePasswords } from 'src/shared/utils/password.utils';
 import { UserDTO } from './dto';
 import { JwtService } from '@nestjs/jwt';
 import { extractTokenFromHeader } from 'src/shared/utils/token.utils';
 import { Request } from 'express';
+import { TokenService } from 'src/auth/token/token.service';
+import { JwtUser } from 'src/shared/interfaces/jwt-user.interface';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async createUser(createUserDTO: CreateUserDTO): Promise<Record<string, string>> {
@@ -88,5 +91,114 @@ export class UsersService {
       throw new ConflictException('User not found');
     }
     return user;
+  }
+
+  async deleteUserByUsername(username: string): Promise<Record<string, string>> {
+    const user = (await this.prismaService.users.findUnique({
+      where: {
+        username: username,
+      },
+      select: {
+        username: true,
+        role: true,
+        status: true,
+        refreshToken: true,
+      },
+    })) as UserDTO;
+
+    if (!user) {
+      throw new ConflictException('User not found');
+    }
+
+    await this.prismaService.users.delete({
+      where: {
+        username: username,
+      },
+    });
+    return { message: 'User deleted' };
+  }
+
+  async updateUserPassword(
+    username: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<Record<string, string>> {
+    const user = (await this.prismaService.users.findUnique({
+      where: {
+        username: username,
+      },
+      select: {
+        username: true,
+        role: true,
+        status: true,
+        refreshToken: true,
+        password: true,
+      },
+    })) as UserDTO;
+
+    if (!user) {
+      throw new ConflictException('User not found');
+    }
+
+    const isCorrectPassword = await comparePasswords(currentPassword, user.password);
+
+    if (!isCorrectPassword) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const newHashedPassword = await hashPassword(newPassword);
+
+    await this.prismaService.users.update({
+      where: {
+        username: username,
+      },
+      data: {
+        password: newHashedPassword,
+      },
+    });
+    return { message: 'User password updated' };
+  }
+
+  async updateUserUsername(
+    currentUsername: string,
+    newUsername: string,
+    req: Request,
+  ): Promise<Record<string, string>> {
+    if (currentUsername === newUsername) {
+      throw new ConflictException('New username is the same as current username');
+    }
+
+    const user = (await this.prismaService.users.findUnique({
+      where: {
+        username: currentUsername,
+      },
+      select: {
+        username: true,
+        role: true,
+        status: true,
+        refreshToken: true,
+      },
+    })) as UserDTO;
+
+    if (!user) {
+      throw new ConflictException('User not found');
+    }
+
+    await this.prismaService.users.update({
+      where: {
+        username: currentUsername,
+      },
+      data: {
+        username: newUsername,
+      },
+    });
+
+    const jwtData = req.user as JwtUser;
+    const payload = { sub: jwtData.sub, username: newUsername };
+    const newAccessToken = this.jwtService.sign(payload);
+    const oldToken = extractTokenFromHeader(req);
+    await this.tokenService.invalidateToken(oldToken!);
+
+    return { message: 'User username updated', accessToken: newAccessToken };
   }
 }

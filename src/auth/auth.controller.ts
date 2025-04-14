@@ -52,7 +52,7 @@ export class AuthController {
   @HttpCode(200)
   @ApiResponse(API_RESPONSES.TOKEN_REFRESHED)
   @ApiResponse(API_RESPONSES.INVALID_REFRESH_TOKEN)
-  async refresh(@Body() body: { refresh_token: string }): Promise<Record<string, string>> {
-    return await this.authService.refreshAccessToken(body.refresh_token);
+  async refresh(@Body() body: { refreshToken: string }): Promise<Record<string, string>> {
+    return await this.authService.refreshAccessToken(body.refreshToken);
   }
 }

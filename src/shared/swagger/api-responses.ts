@@ -172,4 +172,47 @@ export const API_RESPONSES = {
     description: 'User found',
     type: UserDTO,
   },
+  USER_DELETED: {
+    status: 200,
+    description: 'User deleted',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'User deleted',
+        },
+      },
+    },
+  },
+  PASSWORD_UPDATED: {
+    status: 200,
+    description: 'Password updated',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Password updated',
+        },
+      },
+    },
+  },
+  USERNAME_UPDATED: {
+    status: 200,
+    description: 'Username updated',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Username updated',
+        },
+        accessToken: {
+          type: 'string',
+          example: 'example_token',
+        },
+      },
+    },
+  },
 };
