@@ -17,6 +17,7 @@ import { API_RESPONSES } from 'src/shared/swagger/api-responses';
 import { SelfActionGuard } from './self-action.guard';
 import { UpdateUserPasswordDTO } from './dto/update-user-password.dto';
 import { UpdateUserUsernameDTO } from './dto/update-user-username.dto';
+import { UpdateUserEmailDTO } from './dto/update-user-email.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -88,5 +89,18 @@ export class UsersController {
     @Request() req,
   ): Promise<Record<string, string>> {
     return await this.userService.updateUserUsername(userData.username, userData.newUsername, req);
+  }
+
+  @UseGuards(JwtAuthGuard, SelfActionGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Update user email' })
+  @ApiResponse(API_RESPONSES.EMAIL_UPDATED)
+  @ApiResponse(API_RESPONSES.USER_NOT_FOUND)
+  @ApiResponse(API_RESPONSES.INVALID_CREDENTIALS)
+  @ApiBody({ type: UpdateUserEmailDTO })
+  @HttpCode(200)
+  @Post('/update-email')
+  async updateUserEmail(@Body() userData: UpdateUserEmailDTO): Promise<Record<string, string>> {
+    return await this.userService.updateUserEmail(userData);
   }
 }

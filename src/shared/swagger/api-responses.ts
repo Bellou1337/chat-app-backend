@@ -215,4 +215,17 @@ export const API_RESPONSES = {
       },
     },
   },
+  EMAIL_UPDATED: {
+    status: 200,
+    description: 'Email updated',
+    schema: {
+      type: 'object',
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Email updated',
+        },
+      },
+    },
+  },
 };

@@ -6,6 +6,9 @@ export class UserDTO {
 
   readonly password: string;
 
+  @ApiProperty({ example: 'email' })
+  readonly email: string;
+
   @ApiProperty({ example: 'user' })
   readonly role: string;
 

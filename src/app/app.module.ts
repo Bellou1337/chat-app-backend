@@ -9,6 +9,7 @@ import { UsersModule } from 'src/users/users.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { TokenModule } from 'src/auth/token/token.module';
 import { JwtModule } from '@nestjs/jwt';
+import { SmtpModule } from 'src/smtp/smtp.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { JwtModule } from '@nestjs/jwt';
     PrismaModule,
     UsersModule,
     TokenModule,
+    SmtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
