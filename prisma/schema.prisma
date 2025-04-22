@@ -17,8 +17,10 @@ model users {
   id BigInt @id @default(autoincrement())
   username String @unique
   password String
+  email String @unique
+  refreshToken String? @unique
   role Role @default(USER)
-  status Status @default(OFFLINE) 
+  status Status @default(OFFLINE)
 }
 
 enum Role {
