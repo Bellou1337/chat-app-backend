@@ -10,6 +10,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { TokenModule } from 'src/auth/token/token.module';
 import { JwtModule } from '@nestjs/jwt';
 import { SmtpModule } from 'src/smtp/smtp.module';
+import { ChatModule } from 'src/chat/chat.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SmtpModule } from 'src/smtp/smtp.module';
     UsersModule,
     TokenModule,
     SmtpModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
