@@ -172,4 +172,52 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     this.cleanupUser(client.id);
   }
+
+  @SubscribeMessage('webrtc_offer')
+  handleWebRTCOffer(
+    @MessageBody() data: { offer: RTCSessionDescriptionInit },
+    @ConnectedSocket() client: Socket,
+  ) {
+    Logger.log(`WebRTC offer from ${client.id}`, 'ChatGateway');
+
+    const partnerId = this.pairs.get(client.id);
+    if (partnerId) {
+      this.server.to(partnerId).emit('webrtc_offer', {
+        offer: data.offer,
+        from: client.id,
+      });
+    }
+  }
+
+  @SubscribeMessage('webrtc_answer')
+  handleWebRTCAnswer(
+    @MessageBody() data: { answer: RTCSessionDescriptionInit },
+    @ConnectedSocket() client: Socket,
+  ) {
+    Logger.log(`WebRTC answer from ${client.id}`, 'ChatGateway');
+
+    const partnerId = this.pairs.get(client.id);
+    if (partnerId) {
+      this.server.to(partnerId).emit('webrtc_answer', {
+        answer: data.answer,
+        from: client.id,
+      });
+    }
+  }
+
+  @SubscribeMessage('webrtc_ice_candidate')
+  handleWebRTCIceCandidate(
+    @MessageBody() data: { candidate: RTCIceCandidateInit },
+    @ConnectedSocket() client: Socket,
+  ) {
+    Logger.log(`ICE candidate from ${client.id}`, 'ChatGateway');
+
+    const partnerId = this.pairs.get(client.id);
+    if (partnerId) {
+      this.server.to(partnerId).emit('webrtc_ice_candidate', {
+        candidate: data.candidate,
+        from: client.id,
+      });
+    }
+  }
 }
